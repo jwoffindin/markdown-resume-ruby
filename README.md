@@ -3,7 +3,7 @@
 Turn a simple Markdown document into an elegant resume with both a perfect
 pdf printable format, and a responsive css3 html5 file. 
 
-An Ruby adaption of Craig Davis's php-based project [Markdown Resume Generator][mrg], which
+An Ruby adaption of Craig Davis's php-based project [Markdown Resume Generator][php-mrg], which
 was described in his [blog post for the project][blog]. Most of this
 README was lifted directly, appologies Craig :-)
 
