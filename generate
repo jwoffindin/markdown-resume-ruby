@@ -1,0 +1,84 @@
+#!/usr/bin/env ruby
+
+$: << File.dirname(__FILE__) + '/lib'
+
+require 'optparse'
+require 'tempfile'
+require 'resume_formatter'
+
+class ResumeGenerator
+  
+  def initialize(opts)
+    parse_opts(opts)
+  end
+
+  def run
+    html
+    convert_html_to_pdf if options.fetch(:pdf)
+  end
+  
+  def html
+    html_doc = resume_as_html
+    File.open(html_output_filename, 'wb') do |fh|
+      fh.write(html_doc)
+    end
+  end
+
+  def convert_html_to_pdf
+    # file = Tempfile.new(['resume', '.html']).tap do |fh|
+    file = File.new('resume-tmp.html', 'wb').tap do |fh|
+      fh.write(pdf_ready_html)
+      fh.flush
+    end    
+    puts(['wkhtmltopdf-0.9.9-OS-X.i368', '-s', 'A4', file.path, pdf_output_filename].join(' '))
+    system(['wkhtmltopdf-0.9.9-OS-X.i368', '-s', 'A4', file.path, pdf_output_filename].join(' '))
+
+    # file.unlink
+  end
+
+  def pdf_ready_html
+    resume_as_html.gsub('body class=""', 'body class="pdf"')
+  end
+
+
+  def resume_as_html
+    @html ||= formatter.to_html(options[:resume])
+  end
+  
+  def parse_opts(opts)
+    OptionParser.new do |o|
+      o.on('-T THEME') { |theme| options[:theme] = theme }
+      o.on('-f FILENAME') { |resume_file| options[:resume] = resume_file }
+      o.on('-p') { options[:pdf] = true }
+      o.on('-h') { puts o; exit }
+      o.parse!
+    end
+  end
+  
+  def formatter
+    formatter = ResumeFormatter.new(options[:theme])
+  end
+  
+  def options
+    @options ||= {
+      theme: 'modern',
+      resume: 'resume/sample.md',
+      pdf: false
+    }
+  end
+
+  def html_output_filename
+    'resume.html'
+  end  
+
+  def pdf_output_filename
+    'resume.pdf'
+  end
+
+  
+end
+
+ResumeGenerator.new(ARGV).run
+
+
+
